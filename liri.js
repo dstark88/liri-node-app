@@ -1,4 +1,5 @@
 require("dotenv").config();
+var fs = require("fs");
 var keys = require("./keys.js");
 // Include the axios npm package (Don't forget to run "npm install axios" in this folder first!)
 var request = require("request");
@@ -15,6 +16,7 @@ var spotify = new Spotify(keys.spotify);
 var nodeArgs = process.argv;
 var command = process.argv[2];
 var search = String(process.argv.slice(3).join(" "));
+
 
 switch (command) {
   case "concert-this":
@@ -33,8 +35,9 @@ switch (command) {
   what();
   break;
 
-  // default: console.log("Please enter something!");
+  default: console.log("Please enter something!");
 }
+
 
 function concert() {
 
@@ -42,30 +45,34 @@ function concert() {
     var queryURL = "https://rest.bandsintown.com/artists/Pink/events?app_id=b124f8f07a5e8ac35b25650830de04b4";
     axios
     .get(queryURL)
-    .then(function(results) {
+    .then(function(response) {
       request(queryURL, function (error, response, body) {
         if (error) {
           console.log(error);
         }
-        var result = JSON.parse(body)[0];
-        console.log("Name of venue: " + result.venue.name);
-        console.log("Venue location: " + result.venue.city);
-        console.log("Date of the Event: " + moment(result.datetime).format("MM/DD/YYYY"));
+        var response = JSON.parse(body)[0];
+        console.log("Name of venue: " + response.venue.name);
+        console.log("Venue location: " + response.venue.city);
+        console.log("Date of the Event: " + moment(response.datetime).format("MM/DD/YYYY"));
     });
     })
   } else {
     var queryURL = "https://rest.bandsintown.com/artists/" + search + "/events?app_id=b124f8f07a5e8ac35b25650830de04b4";
     axios
     .get(queryURL)
-    .then(function(results) {
+    .then(function(response) {
       request(queryURL, function (error, response, body) {
-        if (error) {
-          console.log(error);
+        var response = JSON.parse(body)[0];
+        console.log("response:", response);
+        
+        if (response === undefined) {
+          console.log("Sorry no concerts for this band");
+        } else {
+        
+        console.log("Name of venue: " + response.venue.name);
+        console.log("Venue location: " + response.venue.city);
+        console.log("Date of the Event: " + moment(response.datetime).format("MM/DD/YYYY"));
         }
-        var result = JSON.parse(body)[0];
-        console.log("Name of venue: " + result.venue.name);
-        console.log("Venue location: " + result.venue.city);
-        console.log("Date of the Event: " + moment(result.datetime).format("MM/DD/YYYY"));
     });
     })
     .catch(function(error) {
@@ -83,54 +90,26 @@ function concert() {
 
 function spot() {
   console.log("spotify");
-  var fs = require("fs");
-  var spotId = [];
-  var spotSec = "";
-  fs.readFile(".env", "utf8", function(error, data) {
-    if (error) {
-      return console.log(error);
-    }
-    // console.log(data);
-    var dataArr = data.split("=");
-    // console.log(dataArr[1].split("\r\n"));
-    spotId = dataArr[1].split("\r\n");
-    console.log(spotId[0]);
-    spotSec = dataArr[2];
-    console.log(spotSec);
-  });
-  // token request
-  axios 
-  .get("https://accounts.spotify.com/authorize?client_id=" + spotId[0] + "&response_type=code&redirect_uri=https%3A%2F%2Fexample.com%2Fcallback&scope=user-read-private%20user-read-email&state=34fFs29kd09")
-  .then(function(response) {
-    console.log("token", response);
-  })
-  if (!search) {
-    axios
-    .get("https://api.spotify.com/v1/tracks/97dc1b7492c04fcd82e1c5366af46c78s")
-    .then(function(response) {
-      console.log("no search spotify");
+
+    if (!search) {
+      search = "The Sign by Ace of Base";
+      spotify.search({ type: 'track', query: search, limit: 1 }, function (err, data) {
+      var i = 0;
+      // console.log("spotify data", data.tracks);
+      console.log("artist: " + data.tracks.items[i].album.artists[0].name);
+      console.log("Album Name: " + data.tracks.items[i].album.name);
+      console.log("Song Name: " + data.tracks.items[i].name);
+      console.log("Preview Url: "+ data.tracks.items[i].preview_url);
     })
-  } else {
-    axios
-    .get("https://api.spotify.com/v1/tracks/97dc1b7492c04fcd82e1c5366af46c78s")
-    .then(function(response) {
-      console.log(response.data);    
-      console.log("im in the for loop");
-      console.log("artist: ");
-      console.log("Album Name: ");
-      console.log("Song Name: ");
-      console.log("Preview Url: ");
+    } else {
+    spotify.search({ type: 'track', query: search, limit: 1 }, function (err, data) {
+      var i = 0;
+      // console.log("spotify data", data.tracks);
+      console.log("artist: " + data.tracks.items[i].album.artists[0].name);
+      console.log("Album Name: " + data.tracks.items[i].album.name);
+      console.log("Song Name: " + data.tracks.items[i].name);
+      console.log("Preview Url: "+ data.tracks.items[i].preview_url);
     })
-    .catch(function(error) {
-      if (error.response) {
-        console.log(error.response.data, "1st message");
-      } else if (error.request) {
-        console.log(error.request, "2nd message");
-      } else {
-        console.log("Error", error.message, "3rd message");
-      }
-      console.log(error.config, "4th message");
-    });
   }
 }
 
@@ -167,12 +146,65 @@ function movie() {
 }
 
 function what() {
-var fs = require("fs");
+  var command = [];
+  var search = "";
 fs.readFile("random.txt", "utf8", function(error, data) {
   if (error) {
     return console.log(error);
   }
   console.log(data);
   var dataArr = data.split(",");
+      // console.log(dataArr[0].split("\r\n"));
+      command = dataArr[0].split("\r\n");
+      // console.log(command[0]);
+      search = dataArr[1];
+      // console.log(search);
+      console.log(command[0], search, "here");
+
+      switch(command[0]) {
+        case "concert-this":
+        var queryURL = "https://rest.bandsintown.com/artists/" + search + "/events?app_id=b124f8f07a5e8ac35b25650830de04b4";
+        axios
+        .get(queryURL)
+        .then(function(response) {
+          request(queryURL, function (error, response, body) {
+            if (error) {
+              console.log(error, "hey");
+            }
+            var response = JSON.parse(body)[0];
+            console.log("Name of venue: " + response.venue.name);
+            console.log("Venue location: " + response.venue.city);
+            console.log("Date of the Event: " + moment(response.datetime).format("MM/DD/YYYY"));
+        });
+        })
+        break;
+      
+        case "spotify-this-song":
+          spotify.search({ type: 'track', query: search, limit: 1 }, function (err, data) {
+            var i = 0;
+            // console.log("spotify data", data.tracks);
+            console.log("artist: " + data.tracks.items[i].album.artists[0].name);
+            console.log("Album Name: " + data.tracks.items[i].album.name);
+            console.log("Song Name: " + data.tracks.items[i].name);
+            console.log("Preview Url: "+ data.tracks.items[i].preview_url);
+          })
+        break;
+      
+        case "movie-this":
+        axios
+        .get("http://www.omdbapi.com/?t=" + search + "&y=&plot=short&apikey=de92683e")
+        .then(function(response) {
+          // console.log(response.data);
+          console.log("The movie requested is: " + response.data.Title);
+          console.log("Release Year: " + response.data.Year);
+          console.log("The movie's rating is: " + response.data.imdbRating);
+          console.log("The Rotten Tomato Rating is: " + response.data.Ratings[1].Value);
+          console.log("The Country is: " + response.data.Country);
+          console.log("The Language is: " + response.data.Language);
+          console.log("The movie plot is: " + response.data.Plot);
+          console.log("The Actors are: " + response.data.Actors);
+        })
+        break;
+      }
 });
 }

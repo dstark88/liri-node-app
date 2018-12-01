@@ -63,7 +63,6 @@ function concert() {
     .then(function(response) {
       request(queryURL, function (error, response, body) {
         var response = JSON.parse(body)[0];
-        console.log("response:", response);
         
         if (response === undefined) {
           console.log("Sorry no concerts for this band");
@@ -74,16 +73,6 @@ function concert() {
         console.log("Date of the Event: " + moment(response.datetime).format("MM/DD/YYYY"));
         }
     });
-    })
-    .catch(function(error) {
-      if (error.response) {
-        console.log(error.response.data, "1st message");
-      } else if (error.request) {
-        console.log(error.request, "2nd message");
-      } else {
-        console.log("Error", error.message, "3rd message");
-      }
-      console.log(error.config, "4th message");
     });
   }
 }
@@ -92,7 +81,7 @@ function spot() {
   console.log("spotify");
 
     if (!search) {
-      search = "The Sign by Ace of Base";
+      search = "I Saw the Sign by Ace of Base";
       spotify.search({ type: 'track', query: search, limit: 1 }, function (err, data) {
       var i = 0;
       // console.log("spotify data", data.tracks);

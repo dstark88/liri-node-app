@@ -4,16 +4,14 @@ var keys = require("./keys.js");
 var request = require("request");
 var axios = require("axios");
 var moment = require("moment");
-moment().format();
 var Spotify = require("node-spotify-api");
 var spotify = new Spotify(keys.spotify);
-// var cTable = require("console.table"); 
+ 
 // var spotify = new Spotify({
 //   id: keys.spotify.id,
 //   secret: keys.spotify.secret
 // });
 
-// Store all of the arguments in an array
 var nodeArgs = process.argv;
 var command = process.argv[2];
 var search = String(process.argv.slice(3).join(" "));
@@ -39,126 +37,142 @@ switch (command) {
 }
 
 function concert() {
-  console.log("in the concert");
 
   if (!search) {
-    // Then run a request with axios to the OMDB API with the movie specified
-    var queryUrl = "https://rest.bandsintown.com/artists/Pink/events?app_id=codingbootcamp";
-    
-    // This line is just to help us debug against the actual URL.
-    console.log(queryUrl, "no search");
-
-    axios.get(queryUrl).then(
-      function(response) {
-
-        // console.log(response);
-        // console.log("Artists requested is: " + response.data.definitions.ArtistData);
-        // console.log("Name of venue: " + response.data.Year);
-        // console.log("Venue Location: " + response.data.imdbRating);
-        // console.log("Date of the Event: " + response.data.imdbRating);
-      })
-      } else {
-        var artist = process.argv.slice(3).join(" ")
-        console.log(artist);
-
-    var queryUrl = "https://rest.bandsintown.com/artists/" + search + "/events?app_id=b124f8f07a5e8ac35b25650830de04b4";
-    
-    // This line is just to help us debug against the actual URL.
-    console.log(queryUrl);
-    axios.get(queryUrl).then(
-    function(response) {
-      console.log("above JSON");
-        var response = JSON.parse(body)[0];
-        console.log("Name of venue: " + response.venue.name);
-        console.log("Venue location: " + response.venue.city);
-        console.log("Date of Event: " + moment(response.datetime).format("MM/DD/YYYY"));
+    var queryURL = "https://rest.bandsintown.com/artists/Pink/events?app_id=b124f8f07a5e8ac35b25650830de04b4";
+    axios
+    .get(queryURL)
+    .then(function(results) {
+      request(queryURL, function (error, response, body) {
+        if (error) {
+          console.log(error);
+        }
+        var result = JSON.parse(body)[0];
+        console.log("Name of venue: " + result.venue.name);
+        console.log("Venue location: " + result.venue.city);
+        console.log("Date of the Event: " + moment(result.datetime).format("MM/DD/YYYY"));
     });
-        // var obj = JSON.parse(response);
-        // console.log(obj);
-        // var obj = JSON.parse(response, function (key, value) {
-        //   if (key == "offers") {
-        //       // return new Date(value);
-        //       console.log(key, "key");
-            
-        //   } 
-        //   });
-        // console.log("im here");
-        // console.log(response.data.bands);
-   
-        // console.log("Artists requested is: " + response.data.definitions.ArtistData);
-        // console.log("Artists requested is: " + response.data.Title);
-        // console.log("Name of venue: " + response"offers");
-        // console.log("Venue Location: " + response.data.imdbRating);
-        // console.log("Date of the Event: " + response.data.imdbRating);
-     
+    })
+  } else {
+    var queryURL = "https://rest.bandsintown.com/artists/" + search + "/events?app_id=b124f8f07a5e8ac35b25650830de04b4";
+    axios
+    .get(queryURL)
+    .then(function(results) {
+      request(queryURL, function (error, response, body) {
+        if (error) {
+          console.log(error);
+        }
+        var result = JSON.parse(body)[0];
+        console.log("Name of venue: " + result.venue.name);
+        console.log("Venue location: " + result.venue.city);
+        console.log("Date of the Event: " + moment(result.datetime).format("MM/DD/YYYY"));
+    });
+    })
+    .catch(function(error) {
+      if (error.response) {
+        console.log(error.response.data, "1st message");
+      } else if (error.request) {
+        console.log(error.request, "2nd message");
+      } else {
+        console.log("Error", error.message, "3rd message");
+      }
+      console.log(error.config, "4th message");
+    });
   }
 }
+
 function spot() {
   console.log("spotify");
-  // if (!search) {
-  //   spotify.search
-  // }
-  spotify.search(function (err, data) {
-    if (err) {
-        return console.log("Error occurred: " + err);
+  var fs = require("fs");
+  var spotId = [];
+  var spotSec = "";
+  fs.readFile(".env", "utf8", function(error, data) {
+    if (error) {
+      return console.log(error);
     }
-
-    // var tableArray = [];
-
-    for (var i = 0; i < data.tracks.items.length; i++) {
-        var result = {
-            artist: data.tracks.items[i].album.artists[0].name,
-            album_name: data.tracks.items[i].album.name,
-            song_name: data.tracks.items[i].name,
-            preview_url: data.tracks.items[i].preview_url
-        }
-        console.log(results, "results");
-        // tableArray.push(result);
-    }
-    // var table = cTable.getTable(tableArray);
-
-    // console.log(table);
-});
+    // console.log(data);
+    var dataArr = data.split("=");
+    // console.log(dataArr[1].split("\r\n"));
+    spotId = dataArr[1].split("\r\n");
+    console.log(spotId[0]);
+    spotSec = dataArr[2];
+    console.log(spotSec);
+  });
+  // token request
+  axios 
+  .get("https://accounts.spotify.com/authorize?client_id=" + spotId[0] + "&response_type=code&redirect_uri=https%3A%2F%2Fexample.com%2Fcallback&scope=user-read-private%20user-read-email&state=34fFs29kd09")
+  .then(function(response) {
+    console.log("token", response);
+  })
+  if (!search) {
+    axios
+    .get("https://api.spotify.com/v1/tracks/97dc1b7492c04fcd82e1c5366af46c78s")
+    .then(function(response) {
+      console.log("no search spotify");
+    })
+  } else {
+    axios
+    .get("https://api.spotify.com/v1/tracks/97dc1b7492c04fcd82e1c5366af46c78s")
+    .then(function(response) {
+      console.log(response.data);    
+      console.log("im in the for loop");
+      console.log("artist: ");
+      console.log("Album Name: ");
+      console.log("Song Name: ");
+      console.log("Preview Url: ");
+    })
+    .catch(function(error) {
+      if (error.response) {
+        console.log(error.response.data, "1st message");
+      } else if (error.request) {
+        console.log(error.request, "2nd message");
+      } else {
+        console.log("Error", error.message, "3rd message");
+      }
+      console.log(error.config, "4th message");
+    });
+  }
 }
 
 function movie() { 
   if (!search) {
-// Then run a request with axios to the OMDB API with the movie specified
-var queryUrl = "http://www.omdbapi.com/?t=Mr.+Nobody&y=&plot=short&apikey=de92683e";
-
-// This line is just to help us debug against the actual URL.
-console.log(queryUrl, "no search");
-
-axios.get(queryUrl).then(
-  function(response) {
-    // console.log(response.data);
-    console.log("The movie requested is: " + response.data.Title);
-    console.log("Release Year: " + response.data.Year);
-    console.log("The movie's rating is: " + response.data.imdbRating);
-    console.log("The Rotten Tomato Rating is: " + response.data.Ratings[1].Value);
-    console.log("The Country is: " + response.data.Country);
-    console.log("The Language is: " + response.data.Language);
-    console.log("The movie plot is: " + response.data.Plot);
-    console.log("The Actors are: " + response.data.Actors);
-  })
+    axios
+    .get("http://www.omdbapi.com/?t=Mr.+Nobody&y=&plot=short&apikey=de92683e")
+    .then(function(response) {
+      // console.log(response.data);
+      console.log("The movie requested is: " + response.data.Title);
+      console.log("Release Year: " + response.data.Year);
+      console.log("The movie's rating is: " + response.data.imdbRating);
+      console.log("The Rotten Tomato Rating is: " + response.data.Ratings[1].Value);
+      console.log("The Country is: " + response.data.Country);
+      console.log("The Language is: " + response.data.Language);
+      console.log("The movie plot is: " + response.data.Plot);
+      console.log("The Actors are: " + response.data.Actors);
+      })
   } else {
-// Then run a request with axios to the OMDB API with the movie specified
-var queryUrl = "http://www.omdbapi.com/?t=" + search + "&y=&plot=short&apikey=de92683e";
-
-// This line is just to help us debug against the actual URL.
-console.log(queryUrl);
-
-axios.get(queryUrl).then(
-  function(response) {
-    // console.log(response.data);
-    console.log("The movie requested is: " + response.data.Title);
-    console.log("Release Year: " + response.data.Year);
-    console.log("The movie's rating is: " + response.data.imdbRating);
-    console.log("The Rotten Tomato Rating is: " + response.data.Ratings[1].Value);
-    console.log("The Country is: " + response.data.Country);
-    console.log("The Language is: " + response.data.Language);
-    console.log("The movie plot is: " + response.data.Plot);
-    console.log("The Actors are: " + response.data.Actors);
-  })
+    axios
+    .get("http://www.omdbapi.com/?t=" + search + "&y=&plot=short&apikey=de92683e")
+    .then(function(response) {
+      // console.log(response.data);
+      console.log("The movie requested is: " + response.data.Title);
+      console.log("Release Year: " + response.data.Year);
+      console.log("The movie's rating is: " + response.data.imdbRating);
+      console.log("The Rotten Tomato Rating is: " + response.data.Ratings[1].Value);
+      console.log("The Country is: " + response.data.Country);
+      console.log("The Language is: " + response.data.Language);
+      console.log("The movie plot is: " + response.data.Plot);
+      console.log("The Actors are: " + response.data.Actors);
+    })
+  }
 }
+
+function what() {
+var fs = require("fs");
+fs.readFile("random.txt", "utf8", function(error, data) {
+  if (error) {
+    return console.log(error);
+  }
+  console.log(data);
+  var dataArr = data.split(",");
+});
 }

@@ -148,7 +148,7 @@ fs.readFile("random.txt", "utf8", function(error, data) {
       // console.log(command[0]);
       search = dataArr[1];
       // console.log(search);
-      console.log(command[0], search, "here");
+      // console.log(command[0], search);
 
       switch(command[0]) {
         case "concert-this":
@@ -158,7 +158,7 @@ fs.readFile("random.txt", "utf8", function(error, data) {
         .then(function(response) {
           request(queryURL, function (error, response, body) {
             if (error) {
-              console.log(error, "hey");
+              console.log(error);
             }
             var response = JSON.parse(body)[0];
             console.log("Name of venue: " + response.venue.name);
